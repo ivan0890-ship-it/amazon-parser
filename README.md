@@ -1,11 +1,67 @@
-Strategies Used to Bypass Amazon Blocks:
+Тестовое задание: Amazon Parser
 
-User-Agent Rotation: I used fake-useragent to generate random, modern browser fingerprints for every request. This prevents Amazon from flagging the traffic as coming from a single script.
 
-Headers Management: The requests mimic a real browser by including Accept-Language, Referer (spoofing Google), and Accept-Encoding.
 
-Error Handling (Back-off): The code includes try/except blocks. If a request fails (status 503), the system logs it rather than crashing.
+Публичный URL
 
-Targeting Overview Pages: Instead of hitting product detail pages (which triggers stricter bot detection) for every item, I extracted as much data as possible from the Category Listing pages (grid view).
 
-Future Improvement (Proxy Rotation): In a production environment, I would integrate a residential proxy service (like BrightData or Smartproxy) into the requests.get call to rotate IP addresses, which is the only reliable way to scrape Amazon at scale.
+Проект развернут и доступен по ссылке:
+
+
+https://amazon-test-ivan.onrender.com
+
+
+
+Инструкция по локальному запуску
+
+
+1. Установите зависимости:
+
+
+   `pip install -r requirements.txt`
+
+
+2. Запустите локальный сервер:
+
+
+   `uvicorn main:app --reload`
+
+
+3. Откройте в браузере:
+
+
+   `http://127.0.0.1:8000`
+
+
+
+Описание решения
+
+
+Стек: Python (FastAPI), SQLite, HTML/JS (Vanilla).
+
+
+
+Реализованный функционал:
+
+
+1\. Парсинг: Сбор топ-5 товаров из категории Amazon (API + BS4).
+
+
+2\. База данных: Сохранение истории в SQLite.
+
+
+3\. Анти-блокировка: Ротация User-Agent и заголовков для имитации браузера.
+
+
+4\. Планировщик: Ежедневное обновление списка категорий (APScheduler).
+
+
+5\. Фронтенд: Адаптивная таблица и карточки товаров с сортировкой.
+
+
+
+Деплой:
+
+
+Проект развернут на Render.com (Python 3.11).
+
