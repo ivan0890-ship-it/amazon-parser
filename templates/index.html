@@ -19,7 +19,9 @@
         .card img { max-width: 100%; height: 200px; object-fit: contain; margin-bottom: 10px; align-self: center; }
         .rank { background: #c45500; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; align-self: flex-start; margin-bottom: 5px; }
         .price { font-size: 1.2em; font-weight: bold; color: #B12704; margin-top: auto; padding-top: 10px; }
-        .title { font-size: 0.9em; margin: 10px 0; height: 3em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+        .title { font-size: 0.9em; margin: 10px 0; font-weight: bold; height: 3em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+        .prime { color: #00a8e1; font-weight: bold; font-size: 0.9em; margin-left: 5px; }
+        .bullets { font-size: 0.8em; color: #555; margin-top: 10px; background: #f9f9f9; padding: 5px; border-radius: 4px; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 20px; display: none; }
         th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
@@ -29,7 +31,7 @@
 <body>
 
 <div class="container">
-    <h1>Amazon Best Sellers Parser</h1>
+    <h1>Amazon Best Sellers Parser v2.0</h1>
 
     <div class="controls">
         <label>Select Category:</label>
@@ -59,7 +61,7 @@
                 <th>Rank</th>
                 <th>Image</th>
                 <th>Title</th>
-                <th>Price</th>
+                <th>Price & Prime</th>
                 <th>Rating</th>
                 <th>ASIN</th>
             </tr>
@@ -99,7 +101,7 @@
         if (!url) return alert("Please select a category");
 
         const grid = document.getElementById('productGrid');
-        grid.innerHTML = '<p>Loading (Scraping Amazon, please wait)...</p>';
+        grid.innerHTML = '<p>Loading (Deep Scraping: Checking items, prices & bullets)... This takes a few seconds per item.</p>';
 
         try {
             const res = await fetch(`/api/scrape?url=${encodeURIComponent(url)}`, { method: 'POST' });
@@ -107,7 +109,7 @@
             
             if (result.status === 'success') {
                 currentProducts = result.data;
-                applySort(); // Sort and Render
+                applySort(); 
             } else {
                 grid.innerHTML = `<p style="color:red">Error: ${result.message}</p>`;
             }
@@ -117,10 +119,8 @@
         }
     }
 
-    // Helper to extract numeric price safely
     function getPrice(p) {
-        if (!p.price) return 0;
-        // Remove currency symbols and non-numeric chars except dot
+        if (!p.price || p.price === "N/A") return 0;
         const clean = p.price.replace(/[^0-9.]/g, '');
         return parseFloat(clean) || 0;
     }
@@ -136,7 +136,7 @@
             currentProducts.sort((a, b) => getPrice(b) - getPrice(a));
         }
         
-        renderProducts(); // Re-draw the screen after sorting
+        renderProducts(); 
     }
 
     function renderProducts() {
@@ -146,15 +146,19 @@
         tbody.innerHTML = '';
 
         currentProducts.forEach(p => {
+            const primeBadge = p.is_prime ? '<span class="prime">✓ Prime</span>' : '';
+            const bullets = p.bullet_points ? `<div class="bullets">${p.bullet_points.substring(0, 150)}...</div>` : '';
+
             // Card View
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
                 <span class="rank">#${p.rank}</span>
                 <img src="${p.image_url}" alt="${p.title}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
-                <div class="title">${p.title}</div>
-                <div class="price">${p.price || 'N/A'}</div>
+                <div class="title" title="${p.title}">${p.title}</div>
+                <div class="price">${p.price || 'N/A'} ${primeBadge}</div>
                 <div>⭐ ${p.rating} (${p.reviews_count})</div>
+                ${bullets}
             `;
             grid.appendChild(card);
 
@@ -164,7 +168,7 @@
                     <td>${p.rank}</td>
                     <td><img src="${p.image_url}" width="50" onerror="this.src='https://via.placeholder.com/50'"></td>
                     <td>${p.title}</td>
-                    <td>${p.price || 'N/A'}</td>
+                    <td>${p.price || 'N/A'} ${primeBadge}</td>
                     <td>${p.rating}</td>
                     <td>${p.asin}</td>
                 </tr>
